@@ -1,0 +1,74 @@
+1. Stakeholders
+1.1.Citizens: people who report accidents or view accident information.
+Responsibilities:
+1. Submit accident reports
+2. Upload media
+3. Track report status
+Needs:
+1. Easy reporting system
+2. Accurate location detection
+3. Real-time status updates
+4. Notification system
+1.2. Police Officers: Authorities responsible for verifying and managing accident cases
+Responsibilities:
+1. Review submitted reports
+2. Verify accident details
+3. Update report status
+4. Assign cases
+Needs:
+1. Reliable data
+2. Easy case management
+3. Quick access to reports
+1.3. System Admins: Technical staff responsible for managing the system
+Responsibilities:
+1. Manage users and roles
+2. Maintain system security
+Needs:
+1. Full system control
+2. Secure access
+2. Functional Requirements
+FR-1. User Registration
+The system shall allow users to create an account using personal information 
+(phone number, email, national ID, etc).
+Note: If we need to integrate the application with “sanad”, we will not need these 
+requirement
+FR-2. User Login
+The system shall allow users to log in using their credentials.
+Note: If we need to integrate the application with “sanad”, we will not need these 
+requirement
+FR-3. User Logout
+The system shall allow users to securely log out of the application
+Note: If we need to integrate the application with “sanad”, we will not need these 
+requirement
+FR-4. Create Accident Report
+1. The system shall allow users to submit a new accident report
+2. The report shall include:
+1) Location
+2) Date and time
+3) Description
+4) Accident type
+FR-5. Automatic Location Detection
+1. The system shall automatically detect the user’s current location using GPS.
+2. The user shall be able to modify the location manually.
+FR-6. Upload Media
+The system shall allow users to upload images and/or videos related to the accident
+FR-7. Validate Report Data
+1. The system shall validate all required fields before submission.
+2. The system shall notify the user if any required data is missing or incorrect.
+FR-8. View Submitted Reports
+The system shall allow users to view a list of their submitted accident reports.
+FR-9. View Report Details
+The system shall allow users to view full details of a selected report.
+FR-10. Track Report Status
+The system shall display the current status of each report:
+1) Submitted
+2) Under Review
+3) Verified
+4) In Progress
+5) Resolved
+6) Rejected
+FR-11. Filter Reports
+The system shall allow users to filter their reports by status or by date or any 
+parameter that can be filled.
+FR-12. Status Update Notifications
+The system shall notify users when the status of their report changes

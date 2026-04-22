@@ -1,0 +1,23 @@
+name: sair_apis
+description: A new Dart Frog application
+version: 1.0.0+1
+publish_to: none
+
+environment:
+  sdk: ^3.0.0
+
+dependencies:
+  dart_frog: ^1.1.0
+  dart_jsonwebtoken: ^3.4.1
+   # Pinned for Dart SDK 3.8 compatibility (language version <= 3.8)
+  googleapis: ^15.0.0
+  # 2.x line currently targets Dart 3.9+, use 1.x for Dart 3.8 environments
+  googleapis_auth: ">=1.6.0 <2.0.0"
+  http: ^1.6.0
+
+dev_dependencies:
+  dart_frog_cli: ^1.2.14
+  dart_frog_lint: ^0.1.0
+  dart_frog_test: ^0.1.2
+  mocktail: ^1.0.0
+  test: ^1.0.0

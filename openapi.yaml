@@ -1,0 +1,436 @@
+openapi: 3.0.3
+info:
+  title: SAIR APIs
+  version: 1.0.0
+  description: Accident reporting backend API.
+servers:
+  - url: http://localhost:8085
+tags:
+  - name: Health
+  - name: Auth
+  - name: Reports
+  - name: Notifications
+  - name: Admin
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          example: VALIDATION_ERROR
+        message:
+          type: string
+          example: Missing required fields.
+    HealthResponse:
+      type: object
+      properties:
+        service:
+          type: string
+        version:
+          type: string
+        status:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+    User:
+      type: object
+      properties:
+        id: { type: string }
+        fullName: { type: string }
+        email: { type: string }
+        phone: { type: string }
+        nationalId: { type: string }
+        role:
+          type: string
+          enum: [citizen, officer, admin]
+        createdAt:
+          type: string
+          format: date-time
+    LoginResponse:
+      type: object
+      properties:
+        token:
+          type: string
+          description: JWT token
+        user:
+          $ref: '#/components/schemas/User'
+    MeResponse:
+      type: object
+      properties:
+        uid: { type: string }
+        role: { type: string }
+        email: { type: string }
+        token: { type: string }
+    Report:
+      type: object
+      properties:
+        id: { type: string }
+        citizenId: { type: string }
+        officerId: { type: string }
+        zoneId: { type: string }
+        lat: { type: number, format: double }
+        lng: { type: number, format: double }
+        address: { type: string }
+        accidentType: { type: string }
+        description: { type: string }
+        occurredAt: { type: string, format: date-time }
+        locationSource:
+          type: string
+          enum: [gps, manual]
+        mediaUrls:
+          type: array
+          items: { type: string }
+        status:
+          type: string
+          enum: [submitted, under_review, verified, in_progress, resolved, rejected]
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+    Notification:
+      type: object
+      properties:
+        id: { type: string }
+        userId: { type: string }
+        title: { type: string }
+        message: { type: string }
+        reportId: { type: string, nullable: true }
+        createdAt: { type: string, format: date-time }
+paths:
+  /:
+    get:
+      summary: Health check
+      tags: [Health]
+      responses:
+        '200':
+          description: Service status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+  /auth/register:
+    post:
+      summary: Register user
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [fullName, email, phone, nationalId, password]
+              properties:
+                fullName: { type: string }
+                email: { type: string }
+                phone: { type: string }
+                nationalId: { type: string }
+                password: { type: string }
+                role:
+                  type: string
+                  enum: [citizen, officer, admin]
+                  default: citizen
+            examples:
+              citizen:
+                value:
+                  fullName: Postman Citizen
+                  email: citizen@example.com
+                  phone: "0790000000"
+                  nationalId: "1234567890"
+                  password: "Pass@123"
+                  role: citizen
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '409':
+          description: Email already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /auth/login:
+    post:
+      summary: Login and receive JWT
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email: { type: string }
+                password: { type: string }
+            examples:
+              demoCitizen:
+                value:
+                  email: citizen@sair.local
+                  password: Pass@123
+      responses:
+        '200':
+          description: Authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /auth/logout:
+    post:
+      summary: Logout current token
+      tags: [Auth]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Logged out
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string }
+  /me:
+    get:
+      summary: Current user context
+      tags: [Auth]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: User context
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MeResponse'
+  /reports:
+    post:
+      summary: Create report
+      tags: [Reports]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [lat, lng, description, accidentType]
+              properties:
+                lat: { type: number, format: double }
+                lng: { type: number, format: double }
+                description: { type: string }
+                accidentType: { type: string }
+                locationSource:
+                  type: string
+                  enum: [gps, manual]
+                  default: gps
+                occurredAt:
+                  type: string
+                  format: date-time
+            examples:
+              create:
+                value:
+                  lat: 31.95
+                  lng: 35.91
+                  description: Traffic accident on Main Street
+                  accidentType: collision
+                  locationSource: manual
+      responses:
+        '201':
+          description: Created report
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Report'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /reports/my:
+    get:
+      summary: List citizen reports with filters
+      tags: [Reports]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [submitted, under_review, verified, in_progress, resolved, rejected]
+        - in: query
+          name: from
+          description: ISO-8601 date-time
+          schema:
+            type: string
+            format: date-time
+        - in: query
+          name: to
+          description: ISO-8601 date-time
+          schema:
+            type: string
+            format: date-time
+      responses:
+        '200':
+          description: Report list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Report'
+  /reports/{id}:
+    get:
+      summary: Get report details
+      tags: [Reports]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Report details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Report'
+        '403':
+          description: Forbidden (citizen accessing other user's report)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /reports/{id}/status:
+    patch:
+      summary: Update report status (officer/admin)
+      tags: [Reports]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status:
+                  type: string
+                  enum: [submitted, under_review, verified, in_progress, resolved, rejected]
+            examples:
+              underReview:
+                value: { status: under_review }
+      responses:
+        '200':
+          description: Status updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Report'
+        '403':
+          description: Forbidden (requires officer/admin)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /reports/{id}/media:
+    post:
+      summary: Append media to report
+      tags: [Reports]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                mediaUrl:
+                  type: string
+                mediaUrls:
+                  type: array
+                  items: { type: string }
+            examples:
+              single:
+                value: { mediaUrl: "https://cdn.local/example.jpg" }
+              multiple:
+                value: { mediaUrls: ["https://cdn.local/a.jpg", "https://cdn.local/b.mp4"] }
+      responses:
+        '200':
+          description: Media appended
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Report'
+  /notifications:
+    get:
+      summary: List current user notifications
+      tags: [Notifications]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Notification list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Notification'
+  /admin/users:
+    get:
+      summary: List all users (admin only)
+      tags: [Admin]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: User list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+        '403':
+          description: Forbidden (admin only)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
