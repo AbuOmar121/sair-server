@@ -1,25 +1,23 @@
-# See https://www.dartlang.org/guides/libraries/private-files
-
-# Files and directories created by the Operating System
+# OS
 .DS_Store
 
-# Files and directories created by pub
+# Dart / Flutter
 .dart_tool/
 .packages
-pubspec.lock
 
-# Files and directories created by dart_frog
+# Dart Frog
 build/
-.dart_frog
-
-# Test related files
-coverage/
-serviceAccount.json
-
-# Local runtime/generated state
-data/db.json
 .dart_frog/
 
-# Firebase credential files
+# Test
+coverage/
+
+# Local DB (ONLY for dev)
+data/db.json
+
+# Secrets
+serviceAccount.json
 *firebase-adminsdk*.json
-sair-44315-firebase-adminsdk-fbsvc-a691458633.json
+
+# Archives
+*.tar
