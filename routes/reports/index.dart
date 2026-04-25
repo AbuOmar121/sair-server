@@ -23,7 +23,17 @@ Future<Response> onRequest(RequestContext context) async {
     // Extract files
     for (final file in formData.files.values) {
       final dynamic f = file;
-      mediaData.add(f.bytes as List<int>);
+      
+      // Multi-property fallback without prints
+      List<int>? data;
+      try { data ??= f.bytes; } catch (_) {}
+      try { data ??= f.contents; } catch (_) {}
+      try { data ??= f.buffer; } catch (_) {}
+      try { data ??= f.data; } catch (_) {}
+      
+      if (data != null) {
+        mediaData.add(data);
+      }
     }
   } else {
     body = await context.request.json() as Map<String, dynamic>;
@@ -81,23 +91,37 @@ Future<Response> onRequest(RequestContext context) async {
     ReportRepositoryImpl(),
   );
 
-  final report = await usecase.execute(
-    citizenId: user['uid'] as String,
-    lat: lat.toDouble(),
-    lng: lng.toDouble(),
-    description: description,
-    accidentType: accidentType,
-    occurredAt: occurredAt,
-    locationSource: locationSource,
-    platesNumber: platesNumber,
-    mediaData: mediaData.isNotEmpty ? mediaData : null,
-  );
+  try {
+    final report = await usecase.execute(
+      citizenId: user['uid'] as String,
+      lat: lat.toDouble(),
+      lng: lng.toDouble(),
+      description: description,
+      accidentType: accidentType,
+      occurredAt: occurredAt,
+      locationSource: locationSource,
+      platesNumber: platesNumber,
+      mediaData: mediaData.isNotEmpty ? mediaData : null,
+    );
 
-  if (!reportStatuses.contains(report.status)) {
+    if (!reportStatuses.contains(report.status)) {
+      return Response.json(
+        statusCode: 500,
+        body: {
+          'error': 'INTERNAL_ERROR',
+          'message': 'Invalid status generated.'
+        },
+      );
+    }
+    return Response.json(statusCode: 201, body: report.toJson());
+  } catch (e, stack) {
     return Response.json(
       statusCode: 500,
-      body: {'error': 'INTERNAL_ERROR', 'message': 'Invalid status generated.'},
+      body: {
+        'error': 'INTERNAL_ERROR',
+        'message': e.toString(),
+        'stackTrace': stack.toString(),
+      },
     );
   }
-  return Response.json(statusCode: 201, body: report.toJson());
 }
