@@ -19,6 +19,7 @@ class Report {
 
   final DateTime createdAt;
   final DateTime updatedAt;
+  final List<String> platesNumber;
 
   Report({
     required this.id,
@@ -36,6 +37,7 @@ class Report {
     required this.status,
     required this.createdAt,
     required this.updatedAt,
+    required this.platesNumber,
   });
 
   factory Report.fromJson(Map<String, dynamic> json) {
@@ -55,6 +57,7 @@ class Report {
       status: json['status'] as String,
       createdAt: DateTime.parse(json['createdAt'] as String),
       updatedAt: DateTime.parse(json['updatedAt'] as String),
+      platesNumber: (json['platesNumber'] as List<dynamic>).cast<String>(),
     );
   }
 
@@ -75,6 +78,7 @@ class Report {
       'status': status,
       'createdAt': createdAt.toIso8601String(),
       'updatedAt': updatedAt.toIso8601String(),
+      'platesNumber': platesNumber,
     };
   }
 }

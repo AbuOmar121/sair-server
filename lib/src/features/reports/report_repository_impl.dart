@@ -69,6 +69,7 @@ class ReportRepositoryImpl implements ReportRepository {
       status: status,
       createdAt: report.createdAt,
       updatedAt: DateTime.now(),
+      platesNumber: report.platesNumber,
     );
     await backend.put('reports', updated.id, updated.toJson());
     return updated;
@@ -95,6 +96,7 @@ class ReportRepositoryImpl implements ReportRepository {
       status: report.status,
       createdAt: report.createdAt,
       updatedAt: DateTime.now(),
+      platesNumber: report.platesNumber,
     );
     await backend.put('reports', updated.id, updated.toJson());
     return updated;

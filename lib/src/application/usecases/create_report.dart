@@ -1,10 +1,13 @@
 import 'package:sair_apis/src/domain/entities/report.dart';
 import 'package:sair_apis/src/domain/repositories/report_repository.dart';
+import 'package:sair_apis/src/features/common/image_service.dart';
 
 class CreateReportUseCase {
   final ReportRepository repo;
+  final ImageService imageService;
 
-  CreateReportUseCase(this.repo);
+  CreateReportUseCase(this.repo, {ImageService? imageService})
+      : imageService = imageService ?? ImageService();
 
   Future<Report> execute({
     required String citizenId,
@@ -14,8 +17,18 @@ class CreateReportUseCase {
     required String accidentType,
     required DateTime occurredAt,
     required String locationSource,
+    required List<String> platesNumber,
+    List<List<int>>? mediaData,
   }) async {
     final now = DateTime.now();
+
+    final List<String> mediaUrls = [];
+    if (mediaData != null) {
+      for (final data in mediaData) {
+        final path = await imageService.saveImage(data);
+        mediaUrls.add(path);
+      }
+    }
 
     final report = Report(
       id: now.millisecondsSinceEpoch.toString(),
@@ -29,10 +42,11 @@ class CreateReportUseCase {
       description: description,
       occurredAt: occurredAt,
       locationSource: locationSource,
-      mediaUrls: const [],
+      mediaUrls: mediaUrls,
       status: 'submitted',
       createdAt: now,
       updatedAt: now,
+      platesNumber: platesNumber,
     );
 
     await repo.createReport(report);

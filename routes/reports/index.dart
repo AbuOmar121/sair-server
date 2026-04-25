@@ -8,24 +8,52 @@ Future<Response> onRequest(RequestContext context) async {
     return Response(statusCode: 405);
   }
 
-  final body = await context.request.json() as Map<String, dynamic>;
+  final contentType = context.request.headers['content-type'] ?? '';
+  Map<String, dynamic> body = {};
+  List<List<int>> mediaData = [];
+
+  if (contentType.contains('multipart/form-data')) {
+    final formData = await context.request.formData();
+    body = Map.from(formData.fields);
+    
+    // Convert string numbers to doubles if present
+    if (body['lat'] != null) body['lat'] = double.tryParse(body['lat'] as String);
+    if (body['lng'] != null) body['lng'] = double.tryParse(body['lng'] as String);
+
+    // Extract files
+    for (final file in formData.files.values) {
+      final dynamic f = file;
+      mediaData.add(f.bytes as List<int>);
+    }
+  } else {
+    body = await context.request.json() as Map<String, dynamic>;
+  }
+
   final user = context.read<Map<String, dynamic>>();
   final lat = body['lat'];
   final lng = body['lng'];
   final description = body['description'];
   final accidentType = body['accidentType'];
+  final platesNumberRaw = body['platesNumber'];
+
   if (lat is! num ||
       lng is! num ||
       description is! String ||
-      accidentType is! String) {
+      accidentType is! String ||
+      platesNumberRaw == null) {
     return Response.json(
       statusCode: 400,
       body: {
         'error': 'VALIDATION_ERROR',
-        'message': 'lat, lng, description, and accidentType are required.',
+        'message':
+            'lat, lng, description, accidentType, and platesNumber are required.',
       },
     );
   }
+
+  final List<String> platesNumber = platesNumberRaw is List
+      ? platesNumberRaw.cast<String>()
+      : [platesNumberRaw.toString()];
   final locationSource = (body['locationSource'] as String?) ?? 'gps';
   if (locationSource != 'gps' && locationSource != 'manual') {
     return Response.json(
@@ -61,7 +89,10 @@ Future<Response> onRequest(RequestContext context) async {
     accidentType: accidentType,
     occurredAt: occurredAt,
     locationSource: locationSource,
+    platesNumber: platesNumber,
+    mediaData: mediaData.isNotEmpty ? mediaData : null,
   );
+
   if (!reportStatuses.contains(report.status)) {
     return Response.json(
       statusCode: 500,

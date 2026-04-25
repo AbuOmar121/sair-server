@@ -1,4 +1,4 @@
-FROM dart:stable AS build
+ROM dart:stable AS build
 
 WORKDIR /app
 
@@ -18,8 +18,17 @@ WORKDIR /app
 
 COPY --from=build /app/server ./server
 COPY --from=build /app/openapi.yaml ./openapi.yaml
-COPY --from=build /app/data ./data
+# COPY --from=build /app/data ./data
 
 EXPOSE 8080
 
 CMD ["./server"]
+
+
+
+
+
+
+
+
+

@@ -60,7 +60,7 @@ components:
           type: string
           description: JWT token
         user:
-          $ref: '#/components/schemas/User'
+          $ref: "#/components/schemas/User"
     MeResponse:
       type: object
       properties:
@@ -89,9 +89,13 @@ components:
           items: { type: string }
         status:
           type: string
-          enum: [submitted, under_review, verified, in_progress, resolved, rejected]
+          enum:
+            [submitted, under_review, verified, in_progress, resolved, rejected]
         createdAt: { type: string, format: date-time }
         updatedAt: { type: string, format: date-time }
+        platesNumber:
+          type: array
+          items: { type: string }
     Notification:
       type: object
       properties:
@@ -107,12 +111,12 @@ paths:
       summary: Health check
       tags: [Health]
       responses:
-        '200':
+        "200":
           description: Service status
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/HealthResponse'
+                $ref: "#/components/schemas/HealthResponse"
   /auth/register:
     post:
       summary: Register user
@@ -144,18 +148,18 @@ paths:
                   password: "Pass@123"
                   role: citizen
       responses:
-        '201':
+        "201":
           description: Created
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/User'
-        '409':
+                $ref: "#/components/schemas/User"
+        "409":
           description: Email already exists
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: "#/components/schemas/ErrorResponse"
   /auth/login:
     post:
       summary: Login and receive JWT
@@ -176,18 +180,18 @@ paths:
                   email: citizen@sair.local
                   password: Pass@123
       responses:
-        '200':
+        "200":
           description: Authenticated
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/LoginResponse'
-        '401':
+                $ref: "#/components/schemas/LoginResponse"
+        "401":
           description: Invalid credentials
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: "#/components/schemas/ErrorResponse"
   /auth/logout:
     post:
       summary: Logout current token
@@ -195,7 +199,7 @@ paths:
       security:
         - bearerAuth: []
       responses:
-        '200':
+        "200":
           description: Logged out
           content:
             application/json:
@@ -210,12 +214,12 @@ paths:
       security:
         - bearerAuth: []
       responses:
-        '200':
+        "200":
           description: User context
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/MeResponse'
+                $ref: "#/components/schemas/MeResponse"
   /reports:
     post:
       summary: Create report
@@ -228,7 +232,7 @@ paths:
           application/json:
             schema:
               type: object
-              required: [lat, lng, description, accidentType]
+              required: [lat, lng, description, accidentType, platesNumber]
               properties:
                 lat: { type: number, format: double }
                 lng: { type: number, format: double }
@@ -241,6 +245,9 @@ paths:
                 occurredAt:
                   type: string
                   format: date-time
+                platesNumber:
+                  type: array
+                  items: { type: string }
             examples:
               create:
                 value:
@@ -249,19 +256,20 @@ paths:
                   description: Traffic accident on Main Street
                   accidentType: collision
                   locationSource: manual
+                  platesNumber: ["ABC-1234", "DEF-5678"]
       responses:
-        '201':
+        "201":
           description: Created report
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Report'
-        '400':
+                $ref: "#/components/schemas/Report"
+        "400":
           description: Validation error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: "#/components/schemas/ErrorResponse"
   /reports/my:
     get:
       summary: List citizen reports with filters
@@ -273,7 +281,15 @@ paths:
           name: status
           schema:
             type: string
-            enum: [submitted, under_review, verified, in_progress, resolved, rejected]
+            enum:
+              [
+                submitted,
+                under_review,
+                verified,
+                in_progress,
+                resolved,
+                rejected,
+              ]
         - in: query
           name: from
           description: ISO-8601 date-time
@@ -287,14 +303,14 @@ paths:
             type: string
             format: date-time
       responses:
-        '200':
+        "200":
           description: Report list
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Report'
+                  $ref: "#/components/schemas/Report"
   /reports/{id}:
     get:
       summary: Get report details
@@ -307,24 +323,24 @@ paths:
           required: true
           schema: { type: string }
       responses:
-        '200':
+        "200":
           description: Report details
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Report'
-        '403':
+                $ref: "#/components/schemas/Report"
+        "403":
           description: Forbidden (citizen accessing other user's report)
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
           description: Not found
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: "#/components/schemas/ErrorResponse"
   /reports/{id}/status:
     patch:
       summary: Update report status (officer/admin)
@@ -346,23 +362,31 @@ paths:
               properties:
                 status:
                   type: string
-                  enum: [submitted, under_review, verified, in_progress, resolved, rejected]
+                  enum:
+                    [
+                      submitted,
+                      under_review,
+                      verified,
+                      in_progress,
+                      resolved,
+                      rejected,
+                    ]
             examples:
               underReview:
                 value: { status: under_review }
       responses:
-        '200':
+        "200":
           description: Status updated
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Report'
-        '403':
+                $ref: "#/components/schemas/Report"
+        "403":
           description: Forbidden (requires officer/admin)
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: "#/components/schemas/ErrorResponse"
   /reports/{id}/media:
     post:
       summary: Append media to report
@@ -390,14 +414,18 @@ paths:
               single:
                 value: { mediaUrl: "https://cdn.local/example.jpg" }
               multiple:
-                value: { mediaUrls: ["https://cdn.local/a.jpg", "https://cdn.local/b.mp4"] }
+                value:
+                  {
+                    mediaUrls:
+                      ["https://cdn.local/a.jpg", "https://cdn.local/b.mp4"],
+                  }
       responses:
-        '200':
+        "200":
           description: Media appended
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Report'
+                $ref: "#/components/schemas/Report"
   /notifications:
     get:
       summary: List current user notifications
@@ -405,14 +433,14 @@ paths:
       security:
         - bearerAuth: []
       responses:
-        '200':
+        "200":
           description: Notification list
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Notification'
+                  $ref: "#/components/schemas/Notification"
   /admin/users:
     get:
       summary: List all users (admin only)
@@ -420,17 +448,17 @@ paths:
       security:
         - bearerAuth: []
       responses:
-        '200':
+        "200":
           description: User list
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/User'
-        '403':
+                  $ref: "#/components/schemas/User"
+        "403":
           description: Forbidden (admin only)
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: "#/components/schemas/ErrorResponse"
