@@ -21,17 +21,34 @@ Future<Response> onRequest(RequestContext context) async {
     if (body['lng'] != null) body['lng'] = double.tryParse(body['lng'] as String);
 
     // Extract files
-    for (final file in formData.files.values) {
-      final dynamic f = file;
-      
-      // Multi-property fallback without prints
-      List<int>? data;
-      try { data ??= f.bytes; } catch (_) {}
-      try { data ??= f.contents; } catch (_) {}
-      try { data ??= f.buffer; } catch (_) {}
-      try { data ??= f.data; } catch (_) {}
-      
-      if (data != null) {
+    if (formData.files.isNotEmpty) {
+      for (final entry in formData.files.entries) {
+        final fieldName = entry.key;
+        final file = entry.value;
+        final dynamic f = file;
+        
+        List<int>? data;
+        try { data ??= f.bytes; } catch (_) {}
+        try { data ??= f.contents; } catch (_) {}
+        try { data ??= f.buffer; } catch (_) {}
+        try { data ??= f.data; } catch (_) {}
+        
+        if (data == null) {
+          try { data = await f.readAsBytes(); } catch (_) {}
+        }
+        if (data == null) {
+          try { data = await f.contents(); } catch (_) {}
+        }
+        if (data == null) {
+          try { data = await f.bytes(); } catch (_) {}
+        }
+        
+        if (data == null || data.isEmpty) {
+          throw Exception(
+            'Failed to extract data from file in field "$fieldName". '
+            'The file was detected but all data properties (bytes, contents, buffer, readAsBytes) failed or returned empty.',
+          );
+        }
         mediaData.add(data);
       }
     }
