@@ -9,9 +9,7 @@ environment:
 dependencies:
   dart_frog: ^1.1.0
   dart_jsonwebtoken: ^3.4.1
-   # Pinned for Dart SDK 3.8 compatibility (language version <= 3.8)
   googleapis: ^15.0.0
-  # 2.x line currently targets Dart 3.9+, use 1.x for Dart 3.8 environments
   googleapis_auth: ">=1.6.0 <2.0.0"
   http: ^1.6.0
   image: ^4.8.0
